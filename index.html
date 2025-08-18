@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <title>تسجيل نقاط - الدومينو و الحريق</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 min-h-screen flex flex-col items-center p-6">
+
+  <h1 class="text-2xl font-bold mb-6">🎲 تسجيل نقاط اللعبة</h1>
+
+  <!-- إدخال أسماء اللاعبين -->
+  <div id="player-setup" class="bg-white shadow-md p-6 rounded-2xl w-full max-w-md mb-6">
+    <h2 class="text-lg font-semibold mb-4">إضافة لاعبين</h2>
+    <div id="players-inputs">
+      <input type="text" placeholder="اسم اللاعب 1" class="player-name border rounded p-2 mb-2 w-full">
+      <input type="text" placeholder="اسم اللاعب 2" class="player-name border rounded p-2 mb-2 w-full">
+    </div>
+    <button onclick="addPlayerInput()" class="bg-blue-500 text-white px-4 py-2 rounded-lg mt-2">➕ إضافة لاعب</button>
+    <button onclick="startGame()" class="bg-green-500 text-white px-4 py-2 rounded-lg mt-2 w-full">ابدأ اللعبة</button>
+  </div>
+
+  <!-- لوحة النقاط -->
+  <div id="scoreboard" class="hidden bg-white shadow-md p-6 rounded-2xl w-full max-w-3xl">
+    <h2 class="text-lg font-semibold mb-4">لوحة النقاط</h2>
+    <table class="w-full border-collapse border border-gray-300 mb-4 text-center">
+      <thead>
+        <tr id="players-row" class="bg-gray-200"></tr>
+      </thead>
+      <tbody id="scores-body"></tbody>
+      <tfoot>
+        <tr id="totals-row" class="bg-yellow-100 font-bold"></tr>
+      </tfoot>
+    </table>
+    <div class="flex gap-2">
+      <button onclick="addRound()" class="bg-blue-600 text-white px-4 py-2 rounded-lg">➕ إضافة جولة</button>
+      <button onclick="resetGame()" class="bg-red-500 text-white px-4 py-2 rounded-lg">🔄 إعادة تعيين</button>
+    </div>
+    <p id="winner-text" class="mt-4 font-bold text-lg text-green-600"></p>
+  </div>
+
+<script>
+let players = [];
+let scores = [];
+
+function addPlayerInput() {
+  const div = document.getElementById("players-inputs");
+  const input = document.createElement("input");
+  input.type = "text";
+  input.placeholder = `اسم اللاعب ${div.children.length + 1}`;
+  input.className = "player-name border rounded p-2 mb-2 w-full";
+  div.appendChild(input);
+}
+
+function startGame() {
+  const inputs = document.querySelectorAll(".player-name");
+  players = Array.from(inputs).map(input => input.value.trim()).filter(Boolean);
+  if (players.length < 2) {
+    alert("أدخل اسم لاعبين على الأقل!");
+    return;
+  }
+
+  document.getElementById("player-setup").classList.add("hidden");
+  document.getElementById("scoreboard").classList.remove("hidden");
+
+  // بناء جدول اللاعبين
+  const playersRow = document.getElementById("players-row");
+  const totalsRow = document.getElementById("totals-row");
+  playersRow.innerHTML = "<th class='border p-2'>الجولة</th>";
+  totalsRow.innerHTML = "<td class='border p-2'>المجموع</td>";
+  players.forEach(player => {
+    playersRow.innerHTML += `<th class='border p-2'>${player}</th>`;
+    totalsRow.innerHTML += `<td class='border p-2' id="total-${player}">0</td>`;
+  });
+
+  scores = [];
+}
+
+function addRound() {
+  const roundIndex = scores.length + 1;
+  const row = document.createElement("tr");
+  row.innerHTML = `<td class='border p-2'>${roundIndex}</td>`;
+  let roundScores = {};
+
+  players.forEach(player => {
+    row.innerHTML += `<td class='border p-2'>
+      <input type='number' class='score-input w-20 border p-1 text-center' data-player='${player}' data-round='${roundIndex}'>
+    </td>`;
+    roundScores[player] = 0;
+  });
+
+  document.getElementById("scores-body").appendChild(row);
+  scores.push(roundScores);
+
+  // متابعة الحساب عند إدخال النقاط
+  row.querySelectorAll(".score-input").forEach(input => {
+    input.addEventListener("input", updateTotals);
+  });
+}
+
+function updateTotals() {
+  players.forEach(player => {
+    let total = 0;
+    document.querySelectorAll(`.score-input[data-player='${player}']`).forEach(input => {
+      total += Number(input.value) || 0;
+    });
+    document.getElementById(`total-${player}`).innerText = total;
+  });
+  checkWinner();
+}
+
+function checkWinner() {
+  let totals = players.map(player => ({
+    name: player,
+    total: Number(document.getElementById(`total-${player}`).innerText)
+  }));
+
+  // هنا ممكن تحدد شرط الفوز/الخسارة حسب اللعبة
+  let loser = totals.reduce((max, p) => p.total > max.total ? p : max, totals[0]);
+  document.getElementById("winner-text").innerText =
+    `👑 الخاسر حتى الآن: ${loser.name} (${loser.total} نقطة)`;
+}
+
+function resetGame() {
+  document.getElementById("player-setup").classList.remove("hidden");
+  document.getElementById("scoreboard").classList.add("hidden");
+  document.getElementById("scores-body").innerHTML = "";
+  document.getElementById("players-row").innerHTML = "";
+  document.getElementById("totals-row").innerHTML = "";
+  document.getElementById("winner-text").innerText = "";
+}
+</script>
+
+</body>
+</html>
