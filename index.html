@@ -2,164 +2,147 @@
 <html lang="ar" dir="rtl">
 <head>
   <meta charset="UTF-8">
-  <title>تسجيل نقاط - الدومينو و الحريق</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>تسجيل النقاط - الدومينو والحريق</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/alpinejs/3.13.5/cdn.min.js" defer></script>
 </head>
-<body class="bg-gray-100 min-h-screen flex flex-col items-center p-6">
+<body class="bg-gradient-to-br from-gray-900 to-gray-800 text-white min-h-screen flex flex-col items-center p-4">
 
-  <h1 class="text-2xl font-bold mb-6">🎮 تسجيل نقاط الألعاب</h1>
+  <!-- الشعار -->
+  <header class="flex items-center gap-2 mb-6">
+    <div class="w-10 h-10 bg-yellow-400 rounded-full flex items-center justify-center text-black font-bold text-xl shadow-lg">🎲</div>
+    <h1 class="text-2xl font-bold">تسجيل النقاط</h1>
+  </header>
 
-  <!-- اختيار اللعبة -->
-  <div id="game-select" class="bg-white shadow-md p-6 rounded-2xl w-full max-w-md mb-6">
-    <h2 class="text-lg font-semibold mb-4">اختر اللعبة</h2>
-    <button onclick="chooseGame('harik')" class="bg-red-500 text-white px-4 py-2 rounded-lg w-full mb-2">🃏 لعبة الحريق</button>
-    <button onclick="chooseGame('domino')" class="bg-blue-500 text-white px-4 py-2 rounded-lg w-full">🎲 لعبة الدومينو</button>
-  </div>
+  <!-- مكون اللعبة -->
+  <div x-data="gameApp()" class="bg-white/10 backdrop-blur-md p-6 rounded-2xl shadow-xl w-full max-w-2xl">
 
-  <!-- إدخال أسماء اللاعبين -->
-  <div id="player-setup" class="hidden bg-white shadow-md p-6 rounded-2xl w-full max-w-md mb-6">
-    <h2 class="text-lg font-semibold mb-4">إضافة لاعبين</h2>
-    <div id="players-inputs">
-      <input type="text" placeholder="اسم اللاعب 1" class="player-name border rounded p-2 mb-2 w-full">
-      <input type="text" placeholder="اسم اللاعب 2" class="player-name border rounded p-2 mb-2 w-full">
+    <!-- اختيار اللعبة -->
+    <div class="mb-4">
+      <label class="block mb-2 font-semibold">اختر اللعبة:</label>
+      <select x-model="selectedGame" @change="resetGame()" class="w-full p-2 rounded bg-gray-800 border border-gray-700">
+        <option value="">-- اختر --</option>
+        <option value="domino">الدومينو</option>
+        <option value="harq">الحريق</option>
+      </select>
     </div>
-    <button onclick="addPlayerInput()" class="bg-blue-500 text-white px-4 py-2 rounded-lg mt-2">➕ إضافة لاعب</button>
-    <button onclick="startGame()" class="bg-green-500 text-white px-4 py-2 rounded-lg mt-2 w-full">ابدأ اللعبة</button>
-  </div>
 
-  <!-- لوحة النقاط -->
-  <div id="scoreboard" class="hidden bg-white shadow-md p-6 rounded-2xl w-full max-w-3xl">
-    <h2 class="text-lg font-semibold mb-4">لوحة النقاط</h2>
-    <table class="w-full border-collapse border border-gray-300 mb-4 text-center">
-      <thead>
-        <tr id="players-row" class="bg-gray-200"></tr>
-      </thead>
-      <tbody id="scores-body"></tbody>
-      <tfoot>
-        <tr id="totals-row" class="bg-yellow-100 font-bold"></tr>
-      </tfoot>
-    </table>
-    <div class="flex gap-2">
-      <button onclick="addRound()" class="bg-blue-600 text-white px-4 py-2 rounded-lg">➕ إضافة جولة</button>
-      <button onclick="resetGame()" class="bg-red-500 text-white px-4 py-2 rounded-lg">🔄 إعادة تعيين</button>
+    <!-- اختيار نقاط الدومينو -->
+    <template x-if="selectedGame === 'domino'">
+      <div class="mb-4">
+        <label class="block mb-2 font-semibold">حدد النقاط (الخسارة عند):</label>
+        <select x-model="dominoTarget" class="w-full p-2 rounded bg-gray-800 border border-gray-700">
+          <option value="51">51</option>
+          <option value="101">101</option>
+        </select>
+      </div>
+    </template>
+
+    <!-- إدخال أسماء اللاعبين -->
+    <div class="mb-4">
+      <label class="block mb-2 font-semibold">أسماء اللاعبين (افصل بينهم بفاصلة):</label>
+      <input x-model="playersInput" @keydown.enter.prevent="setPlayers" placeholder="مثال: علي, محمد, أحمد"
+             class="w-full p-2 rounded bg-gray-800 border border-gray-700">
+      <button @click="setPlayers" class="mt-2 px-4 py-2 bg-yellow-500 text-black font-semibold rounded-lg hover:bg-yellow-400 transition">إضافة اللاعبين</button>
     </div>
-    <p id="status-text" class="mt-4 font-bold text-lg text-green-600"></p>
+
+    <!-- جدول النقاط -->
+    <template x-if="players.length > 0">
+      <div>
+        <h2 class="text-lg font-bold mb-2">النتائج</h2>
+        <table class="w-full border border-gray-700 text-center rounded overflow-hidden">
+          <thead class="bg-gray-700">
+            <tr>
+              <th class="p-2">اللاعب</th>
+              <th class="p-2">المجموع</th>
+              <th class="p-2">إضافة نقاط</th>
+            </tr>
+          </thead>
+          <tbody>
+            <template x-for="(player, index) in players" :key="index">
+              <tr class="border-t border-gray-600 hover:bg-gray-700/50">
+                <td class="p-2 font-semibold" x-text="player.name"></td>
+                <td class="p-2" x-text="player.score"></td>
+                <td class="p-2">
+                  <input type="number" x-model.number="player.newScore" class="w-20 p-1 rounded bg-gray-800 border border-gray-700">
+                  <button @click="addScore(index)" class="ml-2 px-3 py-1 bg-green-500 text-black rounded hover:bg-green-400 transition">+</button>
+                </td>
+              </tr>
+            </template>
+          </tbody>
+        </table>
+      </div>
+    </template>
+
+    <!-- الخاسر -->
+    <template x-if="loser">
+      <div class="mt-4 p-4 bg-red-600/80 rounded-lg text-white text-center font-bold animate-bounce">
+        الخاسر هو: <span x-text="loser"></span>
+      </div>
+    </template>
+
+    <!-- إعادة اللعبة -->
+    <div class="mt-6 text-center">
+      <button @click="resetGame" class="px-4 py-2 bg-blue-500 rounded-lg hover:bg-blue-400 transition">إعادة تعيين اللعبة</button>
+    </div>
   </div>
 
-<script>
-let players = [];
-let scores = [];
-let gameType = null;
+  <!-- تذييل -->
+  <footer class="mt-6 text-sm text-gray-400">
+    صُمم بواسطة <span class="text-yellow-400 font-semibold">Mohd-Fathi</span>
+  </footer>
 
-function chooseGame(type) {
-  gameType = type;
-  document.getElementById("game-select").classList.add("hidden");
-  document.getElementById("player-setup").classList.remove("hidden");
-}
+  <script>
+    function gameApp() {
+      return {
+        selectedGame: "",
+        dominoTarget: 51,
+        playersInput: "",
+        players: [],
+        loser: null,
 
-function addPlayerInput() {
-  const div = document.getElementById("players-inputs");
-  const input = document.createElement("input");
-  input.type = "text";
-  input.placeholder = `اسم اللاعب ${div.children.length + 1}`;
-  input.className = "player-name border rounded p-2 mb-2 w-full";
-  div.appendChild(input);
-}
+        setPlayers() {
+          if (!this.playersInput.trim()) return;
+          this.players = this.playersInput.split(",").map(p => ({
+            name: p.trim(),
+            score: 0,
+            newScore: 0
+          }));
+          this.playersInput = "";
+          this.loser = null;
+        },
 
-function startGame() {
-  const inputs = document.querySelectorAll(".player-name");
-  players = Array.from(inputs).map(input => input.value.trim()).filter(Boolean);
-  if (players.length < 2) {
-    alert("أدخل اسم لاعبين على الأقل!");
-    return;
-  }
+        addScore(index) {
+          if (this.players[index].newScore) {
+            this.players[index].score += this.players[index].newScore;
+            this.players[index].newScore = 0;
+            this.checkLoser();
+          }
+        },
 
-  document.getElementById("player-setup").classList.add("hidden");
-  document.getElementById("scoreboard").classList.remove("hidden");
+        checkLoser() {
+          let target = 0;
+          if (this.selectedGame === "domino") {
+            target = parseInt(this.dominoTarget);
+          } else if (this.selectedGame === "harq") {
+            target = 31;
+          }
+          for (let player of this.players) {
+            if (player.score >= target) {
+              this.loser = player.name;
+              break;
+            }
+          }
+        },
 
-  // بناء جدول اللاعبين
-  const playersRow = document.getElementById("players-row");
-  const totalsRow = document.getElementById("totals-row");
-  playersRow.innerHTML = "<th class='border p-2'>الجولة</th>";
-  totalsRow.innerHTML = "<td class='border p-2'>المجموع</td>";
-  players.forEach(player => {
-    playersRow.innerHTML += `<th class='border p-2'>${player}</th>`;
-    totalsRow.innerHTML += `<td class='border p-2' id="total-${player}">0</td>`;
-  });
-
-  scores = [];
-}
-
-function addRound() {
-  const roundIndex = scores.length + 1;
-  const row = document.createElement("tr");
-  row.innerHTML = `<td class='border p-2'>${roundIndex}</td>`;
-  let roundScores = {};
-
-  players.forEach(player => {
-    row.innerHTML += `<td class='border p-2'>
-      <input type='number' class='score-input w-20 border p-1 text-center' data-player='${player}' data-round='${roundIndex}'>
-    </td>`;
-    roundScores[player] = 0;
-  });
-
-  document.getElementById("scores-body").appendChild(row);
-  scores.push(roundScores);
-
-  // متابعة الحساب عند إدخال النقاط
-  row.querySelectorAll(".score-input").forEach(input => {
-    input.addEventListener("input", updateTotals);
-  });
-}
-
-function updateTotals() {
-  players.forEach(player => {
-    let total = 0;
-    document.querySelectorAll(`.score-input[data-player='${player}']`).forEach(input => {
-      total += Number(input.value) || 0;
-    });
-    document.getElementById(`total-${player}`).innerText = total;
-  });
-  checkStatus();
-}
-
-function checkStatus() {
-  let totals = players.map(player => ({
-    name: player,
-    total: Number(document.getElementById(`total-${player}`).innerText)
-  }));
-
-  if (gameType === "harik") {
-    let loser = totals.find(p => p.total >= 101);
-    if (loser) {
-      document.getElementById("status-text").innerText =
-        `❌ ${loser.name} خسر اللعبة (وصل ${loser.total} نقطة)`;
-      return;
+        resetGame() {
+          this.players = [];
+          this.playersInput = "";
+          this.loser = null;
+        }
+      }
     }
-    let leader = totals.reduce((min, p) => p.total < min.total ? p : min, totals[0]);
-    document.getElementById("status-text").innerText =
-      `🔥 المتصدر حتى الآن: ${leader.name} (${leader.total} نقطة)`;
-  }
-
-  if (gameType === "domino") {
-    let winner = totals.reduce((min, p) => p.total < min.total ? p : min, totals[0]);
-    document.getElementById("status-text").innerText =
-      `👑 الفائز المؤقت: ${winner.name} (${winner.total} نقطة)`;
-  }
-}
-
-function resetGame() {
-  gameType = null;
-  document.getElementById("game-select").classList.remove("hidden");
-  document.getElementById("player-setup").classList.add("hidden");
-  document.getElementById("scoreboard").classList.add("hidden");
-  document.getElementById("scores-body").innerHTML = "";
-  document.getElementById("players-row").innerHTML = "";
-  document.getElementById("totals-row").innerHTML = "";
-  document.getElementById("status-text").innerText = "";
-}
-</script>
-
+  </script>
 </body>
-
 </html>
