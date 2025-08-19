@@ -3,105 +3,104 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>لعبة تسجيل النقاط - الدومينو & الحريق</title>
+  <title>تسجيل نقاط الألعاب - Mohd-Fathi</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
 </head>
-<body class="bg-gradient-to-r from-indigo-200 via-purple-200 to-pink-200 min-h-screen flex flex-col items-center justify-start py-6">
+<body class="bg-gradient-to-r from-indigo-200 via-purple-200 to-pink-200 min-h-screen flex flex-col items-center justify-center p-4">
+  <div class="w-full max-w-4xl bg-white shadow-xl rounded-2xl p-6" x-data="scoreApp()">
 
-  <div class="w-full max-w-3xl bg-white shadow-2xl rounded-2xl p-6" x-data="scoreApp()">
+    <!-- اللوجو و العنوان -->
+    <div class="flex flex-col items-center mb-6">
+      <div class="w-16 h-16 bg-gradient-to-r from-indigo-500 to-pink-500 rounded-full flex items-center justify-center text-white text-2xl font-bold shadow-lg">
+        🎮
+      </div>
+      <h1 class="text-2xl font-bold mt-2 text-gray-700">تسجيل نقاط الألعاب</h1>
+      <p class="text-sm text-gray-500">تصميم: Mohd-Fathi</p>
+    </div>
 
-    <!-- العنوان -->
-    <h1 class="text-3xl font-extrabold text-center text-indigo-700 mb-6">🎮 تسجيل النقاط</h1>
+    <!-- رقم الجولة -->
+    <div class="mb-4 text-center">
+      <span class="text-lg font-semibold text-indigo-600">الجولة الحالية: </span>
+      <span class="text-xl font-bold" x-text="round"></span>
+    </div>
 
     <!-- اختيار اللعبة -->
-    <div class="mb-6 text-center">
-      <label class="font-semibold text-lg">اختر اللعبة:</label>
-      <select x-model="selectedGame" class="p-2 border rounded-lg mx-2">
+    <div class="mb-4">
+      <label class="block text-gray-700 mb-1 font-semibold">اختر اللعبة:</label>
+      <select x-model="selectedGame" class="w-full border rounded-lg p-2 focus:ring focus:ring-indigo-300">
         <option value="">-- اختر --</option>
-        <option value="domino">دومينو</option>
-        <option value="harik">الحريق</option>
+        <option value="domino">الدومينو</option>
+        <option value="harq">الحريق (الكوتشينة)</option>
       </select>
-
-      <!-- تحديد هدف الدومينو -->
-      <div x-show="selectedGame==='domino'" class="mt-3">
-        <label class="font-semibold">اللعب حتى:</label>
-        <select x-model="dominoTarget" class="p-2 border rounded-lg">
-          <option value="51">51</option>
-          <option value="101">101</option>
-        </select>
-      </div>
     </div>
 
-    <!-- إدخال اللاعبين -->
-    <div class="mb-6">
-      <h2 class="text-xl font-bold text-gray-800 mb-2">👥 إضافة اللاعبين</h2>
-      <div class="flex gap-2">
-        <input type="text" x-model="singlePlayer" placeholder="اسم اللاعب"
-          class="flex-1 p-2 border rounded-lg">
-        <button @click="addPlayer()" class="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600">➕</button>
-      </div>
+    <!-- اختيار هدف الدومينو -->
+    <div class="mb-4" x-show="selectedGame === 'domino'">
+      <label class="block text-gray-700 mb-1 font-semibold">اختر الهدف:</label>
+      <select x-model="dominoTarget" class="w-full border rounded-lg p-2 focus:ring focus:ring-indigo-300">
+        <option value="51">51 نقطة</option>
+        <option value="101">101 نقطة</option>
+      </select>
     </div>
 
-    <!-- قائمة اللاعبين -->
-    <div class="mb-6" x-show="players.length > 0">
-      <h2 class="text-xl font-bold text-gray-800 mb-2">📋 قائمة اللاعبين</h2>
-      <template x-for="(player, index) in players" :key="index">
-        <div class="flex items-center justify-between bg-gray-100 p-2 rounded-lg mb-2">
-          <span class="font-semibold" x-text="player.name"></span>
-          <div class="flex items-center gap-2">
-            <input type="number" x-model.number="player.newScore" placeholder="النقاط"
-              class="w-20 p-1 border rounded-lg">
-            <button @click="updateScore(index)" class="bg-blue-500 text-white px-3 py-1 rounded-lg hover:bg-blue-600">تحديث</button>
-            <button @click="removePlayer(index)" class="bg-red-500 text-white px-3 py-1 rounded-lg hover:bg-red-600">❌</button>
-          </div>
-        </div>
-      </template>
+    <!-- إضافة اللاعبين -->
+    <div class="flex gap-2 mb-4">
+      <input type="text" x-model="singlePlayer" placeholder="أدخل اسم اللاعب"
+             class="flex-1 border rounded-lg p-2 focus:ring focus:ring-pink-300">
+      <button @click="addPlayer"
+              class="bg-indigo-500 text-white px-4 py-2 rounded-lg hover:bg-indigo-600 transition">➕ إضافة</button>
     </div>
 
-    <!-- النتائج -->
-    <div class="mt-6" x-show="players.length > 0">
-      <h2 class="text-xl font-bold text-gray-800 mb-4">📊 النتائج</h2>
-      <table class="w-full border-collapse rounded-lg overflow-hidden shadow-md">
+    <!-- جدول اللاعبين -->
+    <div class="overflow-x-auto">
+      <table class="w-full border-collapse border rounded-xl overflow-hidden">
         <thead>
-          <tr class="bg-gray-200 text-gray-700">
-            <th class="py-2 px-4 text-left">اللاعب</th>
-            <th class="py-2 px-4 text-center">النقاط</th>
-            <th class="py-2 px-4 text-center">الحالة</th>
+          <tr class="bg-indigo-500 text-white">
+            <th class="py-2 px-4">اللاعب</th>
+            <th class="py-2 px-4">النقاط</th>
+            <th class="py-2 px-4">الحالة</th>
+            <th class="py-2 px-4">إضافة نقاط</th>
+            <th class="py-2 px-4">حذف</th>
           </tr>
         </thead>
         <tbody>
-          <template x-for="player in players" :key="player.name">
-            <tr 
-              class="border-b"
-              :class="{
-                'bg-red-100 text-red-600 font-bold': loser && loser.name === player.name,
-                'bg-green-100 text-green-600 font-bold': winner && winner.name === player.name,
-                'bg-white text-gray-800': !loser || (!loser.name && !winner.name)
-              }"
+          <template x-for="(player, index) in players" :key="player.name">
+            <tr class="border-b"
+                :class="{
+                  'bg-red-100 text-red-600 font-bold': player.status === '❌ خاسر',
+                  'bg-green-100 text-green-600 font-bold': player.status === '🏆 فائز',
+                  'bg-white text-gray-800': player.status === ''
+                }"
             >
               <td class="py-2 px-4" x-text="player.name"></td>
               <td class="py-2 px-4 text-center" x-text="player.score"></td>
+              <td class="py-2 px-4 text-center" x-text="player.status || '—'"></td>
               <td class="py-2 px-4 text-center">
-                <span x-show="loser && loser.name === player.name">❌ خاسر</span>
-                <span x-show="winner && winner.name === player.name">🏆 فائز</span>
-                <span x-show="!loser || (!loser.name && !winner.name)">—</span>
+                <div class="flex gap-2 justify-center">
+                  <input type="number" min="1" x-model.number="player.newScore"
+                         placeholder="أدخل نقاط"
+                         class="w-20 border rounded-lg p-1 focus:ring focus:ring-indigo-300 text-center">
+                  <button @click="updateScore(index)"
+                          class="bg-green-500 text-white px-2 py-1 rounded-lg hover:bg-green-600 transition">➕</button>
+                </div>
+              </td>
+              <td class="py-2 px-4 text-center">
+                <button @click="removePlayer(index)"
+                        class="bg-red-500 text-white px-2 py-1 rounded-lg hover:bg-red-600 transition">🗑️</button>
               </td>
             </tr>
           </template>
         </tbody>
       </table>
-
-      <!-- زر إعادة اللعبة -->
-      <div class="mt-4 text-center">
-        <button @click="resetGame()" class="bg-yellow-500 text-white px-6 py-2 rounded-lg hover:bg-yellow-600 shadow-md">🔄 إعادة اللعبة</button>
-      </div>
     </div>
 
-    <!-- تذييل -->
-    <footer class="mt-6 text-center text-sm text-gray-500">
-      👨‍💻 التصميم بواسطة <span class="font-bold text-indigo-600">Mohd-Fathi</span>
-    </footer>
+    <!-- أزرار التحكم -->
+    <div class="flex justify-between mt-4">
+      <button @click="resetGame"
+              class="bg-yellow-500 text-white px-4 py-2 rounded-lg hover:bg-yellow-600 transition">🔄 إعادة اللعبة</button>
+    </div>
+
   </div>
 
   <script>
@@ -110,29 +109,20 @@
         selectedGame: "",
         dominoTarget: 51,
         players: [],
-        loser: null,
-        winner: null,
         singlePlayer: "",
+        round: 0, // عداد الجولات
 
         // إضافة لاعب
         addPlayer() {
           if (this.singlePlayer.trim()) {
-            this.players.push({ name: this.singlePlayer.trim(), score: 0, newScore: 0 });
+            this.players.push({ name: this.singlePlayer.trim(), score: 0, newScore: null, status: "" });
             this.singlePlayer = "";
-            this.resetResults();
           }
         },
 
         // حذف لاعب
         removePlayer(index) {
           this.players.splice(index, 1);
-          this.resetResults();
-        },
-
-        // إعادة تعيين النتائج
-        resetResults() {
-          this.loser = null;
-          this.winner = null;
         },
 
         // تحديث النقاط
@@ -142,29 +132,39 @@
           if (!this.players[index].newScore || this.players[index].newScore <= 0) return;
 
           this.players[index].score += this.players[index].newScore;
-          this.players[index].newScore = 0;
+          this.players[index].newScore = null;
 
-          // تحديث النتائج مباشرة
+          // كل تحديث نقاط = جولة جديدة
+          this.round++;
+
+          // تحديث النتائج
           this.calculateResults(target);
         },
 
         // حساب النتائج
         calculateResults(target) {
-          let loser = this.players.find(p => p.score >= target);
+          this.players.forEach(player => {
+            if (player.score >= target) {
+              player.status = "❌ خاسر";
+            } else {
+              player.status = "";
+            }
+          });
 
-          if (loser) {
-            this.loser = loser;
-            this.winner = this.players.reduce((min, p) => 
-              p.score < min.score ? p : min, this.players[0]);
-          } else {
-            this.resetResults(); // لو مفيش حد خسر لسه
+          let alivePlayers = this.players.filter(p => p.status === "");
+          if (alivePlayers.length === 1) {
+            alivePlayers[0].status = "🏆 فائز";
           }
         },
 
-        // 🔄 إعادة اللعبة
+        // إعادة اللعبة
         resetGame() {
-          this.players.forEach(p => p.score = 0);
-          this.resetResults();
+          this.players.forEach(p => {
+            p.score = 0;
+            p.status = "";
+            p.newScore = null;
+          });
+          this.round = 0; // تصفير عداد الجولات
         }
       }
     }
