@@ -3,109 +3,106 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>تسجيل النقاط - Mohd-Fathi</title>
+  <title>لعبة تسجيل النقاط - الدومينو & الحريق</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://unpkg.com/alpinejs" defer></script>
-  <style>
-    /* أنيميشن مخصصة */
-    @keyframes fadeInUp {
-      from { opacity: 0; transform: translateY(20px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-    @keyframes pop {
-      0% { transform: scale(0.9); }
-      50% { transform: scale(1.05); }
-      100% { transform: scale(1); }
-    }
-    .fade-in-up { animation: fadeInUp 0.6s ease forwards; }
-    .pop { animation: pop 0.3s ease; }
-  </style>
+  <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
 </head>
-<body class="bg-gray-900 text-white font-sans min-h-screen flex flex-col items-center p-4">
+<body class="bg-gradient-to-r from-indigo-200 via-purple-200 to-pink-200 min-h-screen flex flex-col items-center justify-start py-6">
 
-  <!-- اللوجو و العنوان -->
-  <header class="text-center mb-6 fade-in-up">
-    <h1 class="text-3xl md:text-4xl font-bold text-yellow-400 drop-shadow-lg">🎮 نظام تسجيل النقاط</h1>
-    <p class="text-sm text-gray-400">تصميم: <span class="font-semibold text-white">Mohd-Fathi</span></p>
-  </header>
+  <div class="w-full max-w-3xl bg-white shadow-2xl rounded-2xl p-6" x-data="scoreApp()">
 
-  <!-- التطبيق -->
-  <main x-data="scoreApp()" class="w-full max-w-3xl bg-gray-800 p-4 md:p-6 rounded-2xl shadow-xl space-y-6 fade-in-up">
+    <!-- العنوان -->
+    <h1 class="text-3xl font-extrabold text-center text-indigo-700 mb-6">🎮 تسجيل النقاط</h1>
 
     <!-- اختيار اللعبة -->
-    <div class="fade-in-up">
-      <label class="block mb-2 font-semibold">اختر اللعبة:</label>
-      <select x-model="selectedGame" class="w-full p-2 rounded bg-gray-900 border border-gray-700">
+    <div class="mb-6 text-center">
+      <label class="font-semibold text-lg">اختر اللعبة:</label>
+      <select x-model="selectedGame" class="p-2 border rounded-lg mx-2">
         <option value="">-- اختر --</option>
-        <option value="domino">الدومينو</option>
-        <option value="harreq">الحريق</option>
+        <option value="domino">دومينو</option>
+        <option value="harik">الحريق</option>
       </select>
-    </div>
 
-    <!-- اختيار النقاط في الدومينو -->
-    <template x-if="selectedGame === 'domino'">
-      <div class="fade-in-up">
-        <label class="block mb-2 font-semibold">اختر عدد النقاط:</label>
-        <select x-model="dominoTarget" class="w-full p-2 rounded bg-gray-900 border border-gray-700">
+      <!-- تحديد هدف الدومينو -->
+      <div x-show="selectedGame==='domino'" class="mt-3">
+        <label class="font-semibold">اللعب حتى:</label>
+        <select x-model="dominoTarget" class="p-2 border rounded-lg">
           <option value="51">51</option>
           <option value="101">101</option>
         </select>
       </div>
-    </template>
+    </div>
 
-    <!-- إدخال أسماء اللاعبين -->
-    <div class="fade-in-up">
-      <label class="block mb-2 font-semibold">أدخل اسم اللاعب:</label>
+    <!-- إدخال اللاعبين -->
+    <div class="mb-6">
+      <h2 class="text-xl font-bold text-gray-800 mb-2">👥 إضافة اللاعبين</h2>
       <div class="flex gap-2">
-        <input x-model="singlePlayer" @keydown.enter.prevent="addPlayer"
-               placeholder="اكتب اسم اللاعب" 
-               class="flex-1 p-2 rounded bg-gray-900 border border-gray-700">
-        <button @click="addPlayer" 
-                class="px-4 py-2 bg-yellow-500 text-black font-semibold rounded-lg hover:bg-yellow-400 transition active:scale-95 pop">➕</button>
+        <input type="text" x-model="singlePlayer" placeholder="اسم اللاعب"
+          class="flex-1 p-2 border rounded-lg">
+        <button @click="addPlayer()" class="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600">➕</button>
       </div>
     </div>
 
-    <!-- عرض اللاعبين -->
-    <template x-if="players.length > 0">
-      <div class="fade-in-up">
-        <h3 class="font-semibold mb-2">اللاعبين:</h3>
-        <ul class="grid grid-cols-1 sm:grid-cols-2 gap-2">
-          <template x-for="(player, index) in players" :key="index">
-            <li class="bg-gray-700 px-3 py-2 rounded-lg flex items-center justify-between transition transform hover:scale-105">
-              <span x-text="player.name"></span>
-              <button @click="removePlayer(index)" class="text-red-400 hover:text-red-200 font-bold">✖</button>
-            </li>
-          </template>
-        </ul>
-      </div>
-    </template>
-
-    <!-- تسجيل النقاط -->
-    <template x-if="players.length > 0 && selectedGame">
-      <div class="space-y-4 fade-in-up">
-        <h3 class="font-semibold mb-2">تسجيل النقاط:</h3>
-        <template x-for="(player, index) in players" :key="index">
-          <div class="flex flex-col sm:flex-row items-center gap-2 bg-gray-900 p-3 rounded-lg transition transform hover:scale-105">
-            <span class="flex-1 font-bold" x-text="player.name"></span>
-            <input type="number" x-model.number="player.newScore" placeholder="أدخل النقاط" 
-                   class="w-full sm:w-32 p-2 rounded bg-gray-800 border border-gray-700">
-            <button @click="updateScore(index)" 
-                    class="px-3 py-2 bg-green-500 text-black rounded-lg hover:bg-green-400 transition pop">✔</button>
+    <!-- قائمة اللاعبين -->
+    <div class="mb-6" x-show="players.length > 0">
+      <h2 class="text-xl font-bold text-gray-800 mb-2">📋 قائمة اللاعبين</h2>
+      <template x-for="(player, index) in players" :key="index">
+        <div class="flex items-center justify-between bg-gray-100 p-2 rounded-lg mb-2">
+          <span class="font-semibold" x-text="player.name"></span>
+          <div class="flex items-center gap-2">
+            <input type="number" x-model.number="player.newScore" placeholder="النقاط"
+              class="w-20 p-1 border rounded-lg">
+            <button @click="updateScore(index)" class="bg-blue-500 text-white px-3 py-1 rounded-lg hover:bg-blue-600">تحديث</button>
+            <button @click="removePlayer(index)" class="bg-red-500 text-white px-3 py-1 rounded-lg hover:bg-red-600">❌</button>
           </div>
-        </template>
-      </div>
-    </template>
+        </div>
+      </template>
+    </div>
 
     <!-- النتائج -->
-    <template x-if="loser !== null">
-      <div class="mt-4 text-center fade-in-up">
-        <h2 class="text-xl font-bold">📊 النتائج:</h2>
-        <p class="text-red-400 font-bold text-lg">الخاسر: <span x-text="loser.name"></span></p>
-        <p class="text-green-400 font-bold text-lg">الفائز: <span x-text="winner.name"></span></p>
-      </div>
-    </template>
+    <div class="mt-6" x-show="players.length > 0">
+      <h2 class="text-xl font-bold text-gray-800 mb-4">📊 النتائج</h2>
+      <table class="w-full border-collapse rounded-lg overflow-hidden shadow-md">
+        <thead>
+          <tr class="bg-gray-200 text-gray-700">
+            <th class="py-2 px-4 text-left">اللاعب</th>
+            <th class="py-2 px-4 text-center">النقاط</th>
+            <th class="py-2 px-4 text-center">الحالة</th>
+          </tr>
+        </thead>
+        <tbody>
+          <template x-for="player in players" :key="player.name">
+            <tr 
+              class="border-b"
+              :class="{
+                'bg-red-100 text-red-600 font-bold': loser && loser.name === player.name,
+                'bg-green-100 text-green-600 font-bold': winner && winner.name === player.name,
+                'bg-white text-gray-800': !loser || (!loser.name && !winner.name)
+              }"
+            >
+              <td class="py-2 px-4" x-text="player.name"></td>
+              <td class="py-2 px-4 text-center" x-text="player.score"></td>
+              <td class="py-2 px-4 text-center">
+                <span x-show="loser && loser.name === player.name">❌ خاسر</span>
+                <span x-show="winner && winner.name === player.name">🏆 فائز</span>
+                <span x-show="!loser || (!loser.name && !winner.name)">—</span>
+              </td>
+            </tr>
+          </template>
+        </tbody>
+      </table>
 
-  </main>
+      <!-- زر إعادة اللعبة -->
+      <div class="mt-4 text-center">
+        <button @click="resetGame()" class="bg-yellow-500 text-white px-6 py-2 rounded-lg hover:bg-yellow-600 shadow-md">🔄 إعادة اللعبة</button>
+      </div>
+    </div>
+
+    <!-- تذييل -->
+    <footer class="mt-6 text-center text-sm text-gray-500">
+      👨‍💻 التصميم بواسطة <span class="font-bold text-indigo-600">Mohd-Fathi</span>
+    </footer>
+  </div>
 
   <script>
     function scoreApp() {
@@ -117,33 +114,57 @@
         winner: null,
         singlePlayer: "",
 
+        // إضافة لاعب
         addPlayer() {
           if (this.singlePlayer.trim()) {
             this.players.push({ name: this.singlePlayer.trim(), score: 0, newScore: 0 });
             this.singlePlayer = "";
-            this.loser = null;
-            this.winner = null;
+            this.resetResults();
           }
         },
 
+        // حذف لاعب
         removePlayer(index) {
           this.players.splice(index, 1);
+          this.resetResults();
+        },
+
+        // إعادة تعيين النتائج
+        resetResults() {
           this.loser = null;
           this.winner = null;
         },
 
+        // تحديث النقاط
         updateScore(index) {
           let target = this.selectedGame === "domino" ? this.dominoTarget : 31;
-          if (!this.players[index].newScore) return;
+
+          if (!this.players[index].newScore || this.players[index].newScore <= 0) return;
+
           this.players[index].score += this.players[index].newScore;
           this.players[index].newScore = 0;
 
-          // تحديد الخاسر
+          // تحديث النتائج مباشرة
+          this.calculateResults(target);
+        },
+
+        // حساب النتائج
+        calculateResults(target) {
           let loser = this.players.find(p => p.score >= target);
+
           if (loser) {
             this.loser = loser;
-            this.winner = this.players.reduce((min, p) => p.score < min.score ? p : min, this.players[0]);
+            this.winner = this.players.reduce((min, p) => 
+              p.score < min.score ? p : min, this.players[0]);
+          } else {
+            this.resetResults(); // لو مفيش حد خسر لسه
           }
+        },
+
+        // 🔄 إعادة اللعبة
+        resetGame() {
+          this.players.forEach(p => p.score = 0);
+          this.resetResults();
         }
       }
     }
